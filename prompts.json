@@ -1,0 +1,32 @@
+[
+    {
+        "task_number": "1",
+        "task": "missing_data",
+        "prompt": "You are an AI model tasked with examining the provided '**Tables**' to identify and categorize missing or incomplete data fields. Follow the steps below and strictly produce only JSON objects as the output.\n\n### Instructions\n1. **Exhaustive Review of All Tables:**\n   - Inspect every table in the dataset.\n   - Check each field for completeness.\n\n2. **Identify Missing or Incomplete Fields:**\n   - Find fields that are empty, have placeholder text (e.g., \"N/A\" or \"—\"), or are missing required attachments.\n\n3. **Categorize by Perspective:**\n   - **Credit Perspective:** For financial/credit details\n   - **Market Perspective:** For market-oriented information\n   - **Technical Perspective:** For official documents or certifications\n\n4. **Output Format (JSON) Requirements:**\n   - For each missing or incomplete field, return **only a JSON object** with the following structure:\n     {\n       \"Perspective\": \"<Credit|Market|Technical>\",\n       \"Request\": \"<A concise request for the missing data, including the specific table and field>\"\n     }\n   - Do not include any commentary, explanations, or text outside of these JSON objects."
+    },
+    {
+        "task_number": "2",
+        "task": "Cross-validation with attachment Doc",
+        "prompt": "You are an AI analyser tasked with cross-validating the 'commercial registration number' in '**Tables**' against the 'Industrial License' attachment. Follow the steps below and strictly produce only JSON objects as the output.\n\n### Instructions:\n1. **Data Cross-Validation**:\n   - Compare the 'commercial registration number' in the Tables with the one in the Industrial License.\n\n2. **Highlight Mismatched Data**:\n   - If there is a mismatch, request the correct number.\n   - If they match, state that they are aligned.\n\n3. **Output Format (JSON) Requirements:**\n   - For each verification result, return **only a JSON object** with the following structure:\n     {\n       \"Perspective\": \"Technical\",\n       \"Request\": \"<If mismatch: request correction. If matched: acknowledge match.>\"\n     }\n   - Do not include any commentary, explanations, or text outside of these JSON objects."
+    },
+    {
+        "task_number": "3",
+        "task": "Identifying Mismatched Data in Loan Applications",
+        "prompt": "You are an AI model tasked with identifying inconsistencies within the '**Tables**'. Follow the steps below and strictly produce only JSON objects as the output.\n\n### Instructions:\n1. **Full Dataset Examination**:\n   - Identify fields that should be consistent but are not.\n\n2. **Inconsistency Detection**:\n   - Note any conflicting values between tables.\n\n3. **Categorize by Perspective:**\n   - **Credit Perspective:** Financial/credit details\n   - **Market Perspective:** Market-related details\n   - **Technical Perspective:** Required documents or certifications\n\n4. **Output Format (JSON) Requirements:**\n   - For each inconsistency, return **only a JSON object**:\n     {\n       \"Perspective\": \"<Credit|Market|Technical>\",\n       \"Request\": \"<Request clarification with table/field details>\"\n     }\n   - Do not include any commentary, explanations, or text outside of these JSON objects."
+    },
+    {
+        "task_number": "4",
+        "task": "Identifying incomplete information",
+        "prompt": "You are an AI model tasked with identifying incomplete information within the '**Tables**'. Follow the steps below and strictly produce only JSON objects as the output.\n\n### Instructions:\n1. **Full Dataset Analysis**:\n   - Identify incomplete sentences, missing keywords, or insufficient numerical breakdowns.\n\n2. **Incomplete Information Detection**:\n   - Determine any field that lacks the necessary detail.\n\n3. **Categorization by Perspective:**\n   - **Project Perspective**\n   - **Market Perspective**\n   - **Cost Perspective**\n\n4. **Output Format (JSON) Requirements:**\n   - For each incomplete entry, return **only a JSON object**:\n     {\n       \"Perspective\": \"<Project|Market|Cost>\",\n       \"Request\": \"<Request for clarification including table/field details>\"\n     }\n   - Do not include any commentary, explanations, or text outside of these JSON objects."
+    },
+    {
+        "task_number": "5",
+        "task": "Data Generation Capability",
+        "prompt": "You are an AI model tasked with identifying additional data requirements based on the '**Tables**'. Follow the steps below and strictly produce only JSON objects as the output.\n\n### Instructions:\n1. **Full Dataset Examination**:\n   - Identify any historical data, projections, or supporting documents that are missing.\n\n2. **Data Requirement Generation**:\n   - Request any missing data needed for completeness.\n\n3. **Categorization by Perspective:**\n   - **Credit Perspective**\n   - **Market Perspective**\n   - **Technical Perspective**\n\n4. **Output Format (JSON) Requirements:**\n   - For each gap, return **only a JSON object**:\n     {\n       \"Perspective\": \"<Credit|Market|Technical>\",\n       \"Request\": \"<A clear statement of what additional info is needed, including table/field>\"\n     }\n   - Do not include any commentary, explanations, or text outside of these JSON objects."
+    },
+    {
+        "task_number": "6",
+        "task": "Business judgment intelligence",
+        "prompt": "You are an AI model tasked with applying business judgment intelligence to the '**Tables**' and comparing them with Market Data. Follow the steps below and strictly produce only JSON objects as the output.\n\n### Instructions:\n1. **Comprehensive Data Analysis**:\n   - Identify unrealistic projections or missing justifications.\n\n2. **Judgment-Based Validation**:\n   - Compare growth rates, projections, and assumptions with market data.\n\n3. **Categorization by Perspective:**\n   - **Credit Perspective**\n   - **Market Perspective**\n   - **Technical Perspective**\n\n4. **Output Format (JSON) Requirements:**\n   - For each identified issue, return **only a JSON object**:\n     {\n       \"Perspective\": \"<Credit|Market|Technical>\",\n       \"Request\": \"<Request clarification or additional data, including table/field details>\"\n     }\n   - Do not include any commentary, explanations, or text outside of these JSON objects."
+    }
+]
