@@ -1,3 +1,0 @@
-icacls.exe A:/Workspace-2024/loan_analysis_app/ec2-pem/Loan-AI.pem /reset
-icacls.exe A:/Workspace-2024/loan_analysis_app/ec2-pem/Loan-AI.pem /grant:r "%username%:(R)"
-icacls.exe A:/Workspace-2024/loan_analysis_app/ec2-pem/Loan-AI.pem /inheritance:r

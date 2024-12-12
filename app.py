@@ -1,5 +1,8 @@
+import sys
+sys.path.append('/home/ubuntu/loan_analysis_app/scripts')
+
 import streamlit as st
-from scripts.analyser import analyse
+from analyser import analyse
 import os
 
 def main():
@@ -51,11 +54,18 @@ def main():
     st.markdown("---")
     st.markdown("<h2>Upload the Required Documents</h2>", unsafe_allow_html=True)
 
-    col1, col2 = st.columns(2)
-    with col1:
-        uploaded_file1 = st.file_uploader("Upload Industrial License", type=["pdf", "docx", "jpeg", "jpg", "png"], key="file1")
-    with col2:
-        uploaded_file2 = st.file_uploader("Upload Commercial Registration", type=["pdf", "docx"], key="file2")
+    # Centered layout
+    st.markdown(
+        "<div style='display: flex; justify-content: center; align-items: center; flex-direction: column;'>",
+        unsafe_allow_html=True,
+    )
+
+    # Upload buttons in rows
+    uploaded_file1 = st.file_uploader("Upload Industrial License", type=["jpeg", "jpg", "png"], key="file1")
+    uploaded_file2 = st.file_uploader("Upload Commercial Registration", type=["jpeg", "jpg", "png"], key="file2")
+    uploaded_file3 = st.file_uploader("Upload Loan Application Form", type=["pdf", "docx"], key="file3")
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
     if st.button("Analyse Documents", help="Click to process the uploaded files"):
         if uploaded_file1 and uploaded_file2:
@@ -66,9 +76,10 @@ def main():
 
                 # Save the uploaded files to the data directory
                 # Using original filename provided by the user
-                doc1_name = f"industrial_license.{uploaded_file1.name.split(".")[-1]}"
-                doc2_name = f"commercial_registration_form.{uploaded_file2.name.split(".")[-1]}"
-                
+                doc1_name = f"industrial_license.{uploaded_file1.name.split('.')[-1]}"
+                doc2_name = f"commercial_registration.{uploaded_file2.name.split('.')[-1]}"
+                doc3_name = f"loan_application_form.{uploaded_file3.name.split('.')[-1]}"
+
                 # Save file 1
                 with open(os.path.join("data", doc1_name), "wb") as f:
                     f.write(uploaded_file1.getbuffer())
@@ -77,23 +88,31 @@ def main():
                 with open(os.path.join("data", doc2_name), "wb") as f:
                     f.write(uploaded_file2.getbuffer())
 
+                # Save file 3
+                with open(os.path.join("data", doc3_name), "wb") as f:
+                    f.write(uploaded_file3.getbuffer())
+
                 st.success("Documents uploaded successfully!")
 
                 # Create a dictionary of the saved documents
                 documents_info = {
-                    "Industrial_License": doc1_name,
-                    "Commercial_Registration": doc2_name
+                    "industrial_license": doc1_name,
+                    "commercial_registration": doc2_name,
+                    "loan_application": doc3_name
                 }
 
+                # progress_text = "Operation in progress. Please wait."
+                # my_bar = st.progress(0, text=progress_text)
+                # my_bar = st.progress(100, text=progress_text)
                 # Example processing result
-                output = analyse(cr_name=documents_info["Commercial_Registration"],
-                                     il_name=documents_info["Industrial_License"]).get_results
-                result = output
-
+                # loan_app_name, cr_name, il_name
+                output = analyse(loan_app_name=documents_info["loan_application"],
+                                 cr_name = documents_info["commercial_registration"],
+                                 il_name=documents_info["industrial_license"]).get_results
                 st.markdown("<h2>Processing Results</h2>", unsafe_allow_html=True)
-                st.markdown(result)
+                st.markdown(output)
         else:
-            st.warning("Please upload both documents before processing.")
+            st.warning("Please upload all required documents before processing.")
 
 if __name__ == "__main__":
     main()

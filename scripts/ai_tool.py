@@ -1,13 +1,12 @@
 import os
+import json
 from dotenv import load_dotenv
-from langchain.llms import OpenAI
 from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 
 
 class ai_tool:
-    def __init__(self, model="gpt-4o", temperature=0.7):
+    def __init__(self, model="gpt-4o-mini", temperature=0.2):
         """
         Initialize the SmartAnalysisAgent with model configuration and validate OpenAI API key.
         """
@@ -39,7 +38,7 @@ class ai_tool:
             str: Analysis result from the LLM.
         """
         # Validate input keys
-        step_1_keys = {"tables", "prompt", "industrial_licence", "market_data"}
+        step_1_keys = {"tables", "prompt", "industrial_licence", "commercial_registration", "market_data"}
         step_2_keys = {"compile_prompt", "input_payload"}
 
         if step_1_keys.issubset(inputs.keys()):
@@ -48,19 +47,23 @@ class ai_tool:
                 prompt_template = """
                 {prompt}
 
-                **Tables**:
+                **Tables of loan application**:
                 {tables}
+
+                **Commercial Registration**:
+                {commercial_registration}
 
                 **Industrial License**:
                 {industrial_licence}
                 """
-                prompt_input = ["tables", "prompt", "industrial_licence"]
+                prompt_input = ["tables", "prompt", "industrial_licence", "commercial_registration"]
+                tables = json.dumps(inputs["tables"]['1. PROJECT DATA'])
                 llm_input = {
                 "prompt": inputs["prompt"]["prompt"],
-                "tables": "\n\n".join(inputs["tables"]),
+                "tables": tables,
+                "commercial_registration": "\n\n"+ inputs["commercial_registration"],
                 "industrial_licence": "\n\n"+ inputs["industrial_licence"]
                 }
-
 
             elif inputs["prompt"]["task_number"]=="6":
                 # Combine inputs into a structured prompt
@@ -91,10 +94,11 @@ class ai_tool:
                 prompt_input = ["tables", "prompt"]
                 llm_input = {
                 "prompt": inputs["prompt"]["prompt"],
-                "tables": "\n\n".join(inputs["tables"]),
+                "tables": json.dumps(inputs["tables"]),
                 }
+
         elif step_2_keys.issubset(inputs.keys()):
-                            # Combine inputs into a structured prompt
+                # Combine inputs into a structured prompt
                 prompt_template = """
                 {prompt}
 
@@ -118,7 +122,7 @@ class ai_tool:
         )
 
         # Use the LLM to perform the analysis
-        chain = LLMChain(llm=self.llm, prompt=prompt)
+        chain = prompt | self.llm
         result = chain.invoke(input=llm_input)
 
-        return result
+        return result.content

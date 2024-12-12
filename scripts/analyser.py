@@ -2,17 +2,20 @@
 import os
 import json
 from utils.utility import load_js
-from scripts.document_ext import Data_extractor
-from scripts.ai_tool import ai_tool
+from document_ext import Data_extractor
+from ai_tool import ai_tool
 
 cwd = os.getcwd()
 
 class analyse:
-    def __init__(self, cr_name, il_name):
+    def __init__(self, loan_app_name, cr_name, il_name):
+        self.loan_app_name = loan_app_name
         self.cr_name = cr_name
         self.il_name = il_name
-        self.registration_tables = None
+
+        self.loan_app_tables = None
         self.industrial_licence = None
+        self.commercial_license = None
         self.market_data = None
         self.prompts = None
         self.ai_agent = ai_tool()
@@ -23,9 +26,11 @@ class analyse:
         cwd = os.getcwd()
         file_path = os.path.join(cwd, "prompts.json")
         self.prompts = load_js(file_path)
-        data = Data_extractor().get(self.cr_name, self.il_name)
-        self.registration_tables = data['registration_tables']
+
+        data = Data_extractor().get(loan_app_name=self.loan_app_name, cr_name=self.cr_name, il_name=self.il_name)
+        self.loan_app_tables = data['loan_app_tables']
         self.industrial_licence = data["industrial_licence"]
+        self.commercial_registration = data["commercial_registration"]
         self.market_data = data["market_data"]
 
     
@@ -39,21 +44,26 @@ class analyse:
         Make sure to not include any additional comments with the response."""
 
         ai_agent = self.ai_agent
-        rt = self.registration_tables
+        l_appt = self.loan_app_tables
         il = self.industrial_licence
+        cr = self.commercial_registration
         md = self.market_data
 
+        print("Data Extraction Completed!")
+        
+        input = self.prompts[0:1]
         all_results = []
-        for prompt in self.prompts:
+        for index, prompt in enumerate(input):
             inputs = {
             "prompt": prompt,
-            "tables": rt,
+            "tables": l_appt,
             "industrial_licence": il,
+            "commercial_registration": cr,
             "market_data": json.dumps(md, indent=4)
-            }    
-        
+            }
+
             analysis_result = ai_agent.analyse(inputs)
-            all_results.append(analysis_result['text'])
+            all_results.append(analysis_result)
         
         # Compile Final Results
         inputs = {
@@ -62,4 +72,4 @@ class analyse:
         }    
     
         final_result = ai_agent.analyse(inputs)
-        return final_result["text"]
+        return final_result
