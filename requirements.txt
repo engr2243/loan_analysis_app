@@ -4,3 +4,7 @@ python-docx
 camelot-py[cv]
 pdfplumber
 pandas
+pytesseract
+python-dotenv
+langchain
+langchain_openai

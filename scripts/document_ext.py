@@ -116,18 +116,20 @@ class Data_extractor:
 
             # Historical Sales Growth Rate
             data['Historical Sales Growth Rate'] = {
-                '2020': f"{int(row["Historical Sales growth rate"][2020]*100)}%",
-                '2021': f"{int(row["Historical Sales growth rate"][2021]*100)}%",
-                '2022': f"{int(row["Historical Sales growth rate"][2022]*100)}%",
-                '2023': f"{int(row["Historical Sales growth rate"][2023]*100)}%"
-            }        
+                '2020': f"{int(row['Historical Sales growth rate'][2020] * 100)}%",
+                '2021': f"{int(row['Historical Sales growth rate'][2021] * 100)}%",
+                '2022': f"{int(row['Historical Sales growth rate'][2022] * 100)}%",
+                '2023': f"{int(row['Historical Sales growth rate'][2023] * 100)}%"
+            }
+
             # Projected Sales Growth Rate
             data['Projected Sales Growth Rate'] = {
-                '2024': f"{int(row["Projected Sales growth rate"][2024]*100)}%",
-                '2025': f"{int(row["Projected Sales growth rate"][2025]*100)}%",
-                '2026': f"{int(row["Projected Sales growth rate"][2026]*100)}%",
-                '2027': f"{int(row["Projected Sales growth rate"][2027]*100)}%"
+                '2024': f"{int(row['Projected Sales growth rate'][2024] * 100)}%",
+                '2025': f"{int(row['Projected Sales growth rate'][2025] * 100)}%",
+                '2026': f"{int(row['Projected Sales growth rate'][2026] * 100)}%",
+                '2027': f"{int(row['Projected Sales growth rate'][2027] * 100)}%"
             }
+
             
             # Competitors Prices
             data['Competitors Prices'] = str(row["Competitors' prices (SR/unit)"].values[0])
