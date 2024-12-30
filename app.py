@@ -42,12 +42,13 @@ def main():
     # Sidebar with instructions
     st.sidebar.title("Instructions")
     st.sidebar.markdown("""
-    1. Upload your *Industrial License* document.\n
-    2. Upload your *Commercial Registration* document.\n
-    3. Click **Process Documents** and wait for the results.\n
+    1. Upload the **Industrial License document(pdf/image)**.\n
+    2. Upload the **Commercial Registration Documentdocument(pdf/image)**.\n
+    2. Upload the **Loan Apllication Document(pdf/.docx)**.\n
+    3. Click **Start Analysis** and wait for the results.\n
     4. Ensure the uploaded files are valid and readable.
     """)
-    st.sidebar.markdown("**Contact:** support@example.com")
+    st.sidebar.markdown("**Contact:** placeholder@example.com")
 
     # Main title and headers
     st.markdown("<h1>Commercial Application Analyser</h1>", unsafe_allow_html=True)
@@ -61,13 +62,13 @@ def main():
     )
 
     # Upload buttons in rows
-    uploaded_file1 = st.file_uploader("Upload Industrial License", type=["jpeg", "jpg", "png"], key="file1")
-    uploaded_file2 = st.file_uploader("Upload Commercial Registration", type=["jpeg", "jpg", "png"], key="file2")
+    uploaded_file1 = st.file_uploader("Upload Industrial License", type=["jpeg", "jpg", "png", "pdf"], key="file1")
+    uploaded_file2 = st.file_uploader("Upload Commercial Registration", type=["jpeg", "jpg", "png", "pdf"], key="file2")
     uploaded_file3 = st.file_uploader("Upload Loan Application Form", type=["pdf", "docx"], key="file3")
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-    if st.button("Analyse Documents", help="Click to process the uploaded files"):
+    if st.button("Start Analysis", help="Click to process the uploaded files"):
         if uploaded_file1 and uploaded_file2:
             with st.spinner("Processing documents..."):
                 # Create data directory if it doesn't exist
@@ -101,11 +102,6 @@ def main():
                     "loan_application": doc3_name
                 }
 
-                # progress_text = "Operation in progress. Please wait."
-                # my_bar = st.progress(0, text=progress_text)
-                # my_bar = st.progress(100, text=progress_text)
-                # Example processing result
-                # loan_app_name, cr_name, il_name
                 output = analyse(loan_app_name=documents_info["loan_application"],
                                  cr_name = documents_info["commercial_registration"],
                                  il_name=documents_info["industrial_license"]).get_results

@@ -3,15 +3,23 @@ import json
 from dotenv import load_dotenv
 from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
-
+from langchain_experimental.tools import PythonREPLTool
+from langchain.agents import initialize_agent, AgentType
 
 class ai_tool:
-    def __init__(self, model="gpt-4o-mini", temperature=0.2):
+    def __init__(self, model="gpt-4o", temperature=0):
         """
         Initialize the SmartAnalysisAgent with model configuration and validate OpenAI API key.
         """
         self._load_and_validate_api_key()
         self.llm = ChatOpenAI(model=model, temperature=temperature)
+        self.math_agent = initialize_agent(
+            tools=[PythonREPLTool()],
+            llm=self.llm,
+            agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
+            # handle_parse_errors=True,
+            verbose=True
+        )
 
     @staticmethod
     def _load_and_validate_api_key():
@@ -57,13 +65,53 @@ class ai_tool:
                 {industrial_licence}
                 """
                 prompt_input = ["tables", "prompt", "industrial_licence", "commercial_registration"]
-                tables = json.dumps(inputs["tables"]['1. PROJECT DATA'])
+                if isinstance(inputs["tables"], dict):
+                    tables = json.dumps(inputs["tables"]['1. PROJECT DATA'])
+                else:
+                    tables = inputs["tables"]
+
                 llm_input = {
                 "prompt": inputs["prompt"]["prompt"],
                 "tables": tables,
                 "commercial_registration": "\n\n"+ inputs["commercial_registration"],
                 "industrial_licence": "\n\n"+ inputs["industrial_licence"]
                 }
+
+            elif inputs["prompt"]["task_number"]=="4":
+                    # Combine inputs into a structured prompt
+                    prompt_template = """
+                    {prompt}
+
+                    **Tables of loan application**:
+                    {tables}
+                    """
+                    prompt_input = ["tables", "prompt"]
+                    if isinstance(inputs["tables"], dict):
+                        tables = json.dumps({x:y for x,y in inputs["tables"].items() if x in ['1. PROJECT DATA', '2. MARKETING INFORMATION', "3. TECHNICAL INFORMATION"]})
+                    else:
+                         tables = inputs["tables"]
+                    llm_input = {
+                    "prompt": inputs["prompt"]["prompt"],
+                    "tables": tables
+                    }
+
+            elif inputs["prompt"]["task_number"]=="5":
+                    # Combine inputs into a structured prompt
+                    prompt_template = """
+                    {prompt}
+
+                    **Tables of loan application**:
+                    {tables}
+                    """
+                    prompt_input = ["tables", "prompt"]
+                    if isinstance(inputs["tables"], dict):
+                        tables = json.dumps({x:y for x,y in inputs["tables"].items() if x in ['2. MARKETING INFORMATION']})
+                    else:
+                         tables = inputs["tables"]
+                    llm_input = {
+                    "prompt": inputs["prompt"]["prompt"],
+                    "tables": tables,
+                    }
 
             elif inputs["prompt"]["task_number"]=="6":
                 # Combine inputs into a structured prompt
@@ -77,12 +125,16 @@ class ai_tool:
                 {market_data}
                 """
                 prompt_input = ["tables", "prompt", "market_data"]
+                if isinstance(inputs["tables"], dict):
+                    tables = json.dumps({x:y for x,y in inputs["tables"].items() if x in ['1. PROJECT DATA', '2. MARKETING INFORMATION', "3. TECHNICAL INFORMATION"]})
+                else:
+                     tables = inputs["tables"]
                 llm_input = {
                 "prompt": inputs["prompt"]["prompt"],
-                "tables": "\n\n".join(inputs["tables"]),
+                "tables": tables,
                 "market_data": "\n\n"+ inputs["market_data"]
                 }
-
+                
             else:
                 # Combine inputs into a structured prompt
                 prompt_template = """
@@ -92,9 +144,14 @@ class ai_tool:
                 {tables}
                 """
                 prompt_input = ["tables", "prompt"]
+                if isinstance(inputs["tables"], dict):
+                     tables = json.dumps(inputs["tables"])
+                else:
+                     tables = inputs["tables"]
+                
                 llm_input = {
                 "prompt": inputs["prompt"]["prompt"],
-                "tables": json.dumps(inputs["tables"]),
+                "tables": tables,
                 }
 
         elif step_2_keys.issubset(inputs.keys()):
@@ -120,9 +177,14 @@ class ai_tool:
             input_variables=prompt_input,
             template=prompt_template.strip()
         )
-
-        # Use the LLM to perform the analysis
-        chain = prompt | self.llm
-        result = chain.invoke(input=llm_input)
-
-        return result.content
+        
+        if "prompt" in inputs.keys() and inputs["prompt"]["task_number"]=="6":
+             prompt_formatted = prompt.format(prompt=llm_input["prompt"],
+                                               tables=llm_input["tables"],
+                                                 market_data=llm_input["market_data"])
+             response = self.math_agent.run({"input": prompt_formatted, "chat_history": []})
+             return response
+        else:
+            chain = prompt | self.llm
+            result = chain.invoke(input=llm_input)
+            return result.content

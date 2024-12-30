@@ -38,10 +38,9 @@ class analyse:
         print("Extracting Data")
         self.load_rdata()
 
-        compile_prompt = """Analyse the below requests in all jsons and categorize them under Market Responses,
+        compile_prompt = """You are given a list of Json each having 'Perspective' and 'Response' as keys. Your job is to categorize them under Market Responses,
         Technical Responses and Credit Responses as headings. The answer must start addressing the user e.g;
-        'Here is the complete breakdown of analysis of your Commercial Loan Application' Make sure to format the output with bullets and numbers.
-        Make sure to not include any additional comments with the response."""
+        'Here is the complete breakdown of analysis of your Commercial Loan Application' Make sure to format the out with numbers under each cateogory."""
 
         ai_agent = self.ai_agent
         l_appt = self.loan_app_tables
@@ -51,7 +50,7 @@ class analyse:
 
         print("Data Extraction Completed!")
         
-        input = self.prompts[0:1]
+        input = self.prompts
         all_results = []
         for index, prompt in enumerate(input):
             inputs = {

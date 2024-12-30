@@ -8,3 +8,4 @@ pytesseract
 python-dotenv
 langchain
 langchain_openai
+pdf2image

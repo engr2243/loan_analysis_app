@@ -6,49 +6,19 @@ from PIL import Image
 import pytesseract
 import pandas as pd
 from utils.utility import doc_to_pdf
+from docling.document_converter import DocumentConverter
+from pdf2image import convert_from_path
+import re
+
+converter = DocumentConverter()
 
 cwd = os.getcwd()
 
 class Data_extractor:
     def __init__(self):
         self.data = {}
-
-    def loan_application_parser(self, file_path):
-        file, extension = os.path.splitext(file_path)
-        extension = extension.lower()
-        if extension in ['.doc', '.docx']:
-            print("test-1")
-            pdf_path = file + ".pdf"
-            rs = doc_to_pdf(input_docx=file_path, output_pdf=pdf_path)
-        else:
-            print("test-2")
-            pdf_path = file_path
-            rs = True
-        
-        tb_lst = []
-        if rs==True:
-            print("test-3")
-            with pdfplumber.open(pdf_path) as pdf:
-                for page in pdf.pages:
-                    tables = page.extract_tables()
-                    for table in tables:
-                #         # Clean up table data
-                        cleaned_table = [list(set([cell.strip() if cell else "" for cell in row])) for row in table]
-                        tb_lst.append(cleaned_table)
-        
-        elif rs=="timeout":
-            print("test-4")
-            doc_path = file_path
-            doc = Document(doc_path)
-            # Iterate over all tables in the document
-            for table in doc.tables:
-                table_data = []
-                for row in table.rows:
-                    row_data = [cell.text.strip() for cell in row.cells]
-                    table_data.append(row_data)
-                tb_lst.append(table_data)
-        
-
+    
+    def format_tables(self, tb_lst):
         seg_ind = []
         for ind_m, val1 in enumerate(tb_lst):
             for xy in val1:
@@ -69,34 +39,132 @@ class Data_extractor:
                     seg_ind[2].append(ind_m-1)
                     seg_ind.append([ind_m])
                     seg_ind[3].append(len(tb_lst) - 1)
+        
+        try:
+            tables_segments = {}
+            tables_segments["1. PROJECT DATA"] = tb_lst[seg_ind[0][0]:seg_ind[0][1]]
+            tables_segments["2. MARKETING INFORMATION"] = tb_lst[seg_ind[1][0]:seg_ind[1][1]]
+            tables_segments["3. TECHNICAL INFORMATION"] = tb_lst[seg_ind[2][0]:seg_ind[2][1]]
+            tables_segments["4. FINANCIAL INFORMATION"] = tb_lst[seg_ind[3][0]:seg_ind[3][1]]
+            return tb_lst
+        except IndexError:
+            return []
 
-        tables_segments = {}
-        tables_segments["1. PROJECT DATA"] = tb_lst[seg_ind[0][0]:seg_ind[0][1]]
-        tables_segments["2. MARKETING INFORMATION"] = tb_lst[seg_ind[1][0]:seg_ind[1][1]]
-        tables_segments["3. TECHNICAL INFORMATION"] = tb_lst[seg_ind[2][0]:seg_ind[2][1]]
-        tables_segments["4. FINANCIAL INFORMATION"] = tb_lst[seg_ind[3][0]:seg_ind[3][1]]
-        self.data["loan_app_tables"] = tables_segments
+    def loan_application_parser(self, file_path):
+        file, extension = os.path.splitext(file_path)
+        extension = extension.lower()
+        tb_lst = []
+        if extension in ['.doc', '.docx']:
+            print("test-1")
+            pdf_path = file + ".pdf"
+            rs = doc_to_pdf(input_docx=file_path, output_pdf=pdf_path)
+            
+            if rs==True:
+                with pdfplumber.open(pdf_path) as pdf:
+                    for page in pdf.pages:
+                        tables = page.extract_tables()
+                        for table in tables:
+                    #         # Clean up table data
+                            cleaned_table = [[cell.strip() if cell else "" for cell in row] for row in table]
+                            tb_lst.append(cleaned_table)
 
-    def img_to_txt(self, file_path: str, document_type) -> str:
+            elif rs=="timeout":
+                doc_path = file_path
+                doc = Document(doc_path)
+                # Iterate over all tables in the document
+                for table in doc.tables:
+                    table_data = []
+                    for row in table.rows:
+                        row_data = [cell.text.strip() for cell in row.cells]
+                        table_data.append(row_data)
+                    tb_lst.append(table_data)
+
+        elif extension.lower() in [".pdf"]:
+            with pdfplumber.open(file_path) as pdf:
+                for page in pdf.pages:
+                    tables = page.extract_tables()
+                    for table in tables:
+                #         # Clean up table data
+                        cleaned_table = [[cell.strip() if cell else "" for cell in row] for row in table]
+                        tb_lst.append(cleaned_table)
+
+        fmt_tbls = self.format_tables(tb_lst)
+        
+        if fmt_tbls:
+            self.data["loan_app_tables"] = fmt_tbls
+            return 
+        elif fmt_tbls == [] and extension in ['.doc', '.docx']:                    
+            doc_path = file_path
+            doc = Document(doc_path)
+            # Iterate over all tables in the document
+            for table in doc.tables:
+                table_data = []
+                for row in table.rows:
+                    row_data = [cell.text.strip() for cell in row.cells]
+                    table_data.append(row_data)
+                tb_lst.append(table_data)
+            fmt_tbls = self.format_tables(tb_lst)
+            if fmt_tbls:
+                self.data["loan_app_tables"] = fmt_tbls
+                return
+            else:
+                if tb_lst:
+                    self.data["loan_app_tables"] = tb_lst
+                else:
+                    result = converter.convert(file_path)
+                    out = result.document.export_to_markdown()
+                    fmt_tbls = out.split("Responses to the loan application")[0]
+                    # fmt_tbls = re.findall(r'\|(.*?)\|', out)
+                    self.data["loan_app_tables"] = fmt_tbls
+                    return
+        elif fmt_tbls == [] and extension in ['.pdf']:
+            result = converter.convert(file_path)
+            out = result.document.export_to_markdown()
+            fmt_tbls = out.split("Responses to the loan application")[0]
+            # fmt_tbls = re.findall(r'\|(.*?)\|', out)
+            self.data["loan_app_tables"] = fmt_tbls
+            return            
+
+                            
+    def img_to_txt(self, file_path: str, document_type: str) -> str:
         """
-        Extracts text from an image using Tesseract OCR.
+        Extracts text from an image or PDF file using Tesseract OCR.
 
         Args:
-            image_path (str): Path to the image file.
+            file_path (str): Path to the image or PDF file.
+            document_type (str): The type/category of the document.
 
         Returns:
-            str: The extracted text from the image.
+            str: The extracted text from the file.
         """
-        # try:
-        # Open the image file
-        image = Image.open(file_path)
-        
-        # Use Tesseract to extract text
-        extracted_text_eng = pytesseract.image_to_string(image, lang='eng')
-        extracted_text_ara = pytesseract.image_to_string(image, lang='ara')
+        final_text = ""
 
-        final_text = f"{extracted_text_eng}/n{extracted_text_ara}"
-        self.data[document_type] = final_text
+        try:
+            if file_path.lower().endswith('.pdf'):
+                # Extract images from the PDF pages
+                pages = convert_from_path(file_path)
+                for page_number, page_image in enumerate(pages, start=1):
+                    # Perform OCR on each page image
+                    extracted_text_eng = pytesseract.image_to_string(page_image, lang='eng')
+                    extracted_text_ara = pytesseract.image_to_string(page_image, lang='ara')
+                    final_text += f"\n--- Page {page_number} ---\n{extracted_text_eng}\n{extracted_text_ara}\n"
+            else:
+                # Open the image file
+                image = Image.open(file_path)
+
+                # Perform OCR on the image
+                extracted_text_eng = pytesseract.image_to_string(image, lang='eng')
+                extracted_text_ara = pytesseract.image_to_string(image, lang='ara')
+
+                final_text = f"{extracted_text_eng}\n{extracted_text_ara}"
+
+            # Store the extracted text in the data dictionary
+            self.data[document_type] = final_text
+            return final_text
+
+        except Exception as e:
+            print(f"An error occurred while processing the file: {e}")
+            return ""
 
     def market_data(self, file_path):
         # Load the Excel file
